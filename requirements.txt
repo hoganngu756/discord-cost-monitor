@@ -1,0 +1,7 @@
+# Production dependencies — pinned for reproducible builds
+discord.py>=2.4.0
+prometheus-api-client>=0.5.5
+pydantic>=2.7.0
+pydantic-settings>=2.3.0
+aiohttp>=3.9.0
+python-dotenv>=1.0.0

@@ -1,0 +1,12 @@
+{
+    "profile_name": "default-local",
+    "description": "Mock pricing profile for local Kubernetes clusters. Rates approximate mid-tier cloud (e.g., AWS us-east-1 on-demand).",
+    "currency": "USD",
+    "cpu_cost_per_core_hour": 0.031611,
+    "memory_cost_per_gib_hour": 0.004237,
+    "notes": {
+        "cpu_basis": "Approximation of AWS m5.xlarge on-demand ($0.192/hr ÷ ~6 usable cores ≈ $0.032/core/hr).",
+        "memory_basis": "Approximation of AWS m5.xlarge on-demand ($0.192/hr ÷ ~16 GiB usable ≈ $0.012/GiB/hr), scaled down for a local dev cluster.",
+        "usage": "These values are used as a fallback when the OpenCost API is unreachable."
+    }
+}
