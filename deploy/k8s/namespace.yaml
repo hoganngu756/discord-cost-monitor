@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kube-cost-bot
+  labels:
+    app.kubernetes.io/name: kube-cost-bot
+    app.kubernetes.io/part-of: kube-cost-bot

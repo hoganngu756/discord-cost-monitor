@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kube-cost-bot
+  namespace: kube-cost-bot
+  labels:
+    app.kubernetes.io/name: kube-cost-bot
+    app.kubernetes.io/component: bot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kube-cost-bot
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kube-cost-bot
+        app.kubernetes.io/component: bot
+    spec:
+      serviceAccountName: cost-bot-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+        - name: bot
+          image: kube-cost-bot:latest
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          envFrom:
+            - secretRef:
+                name: cost-bot-secrets
+          env:
+            # Override in-cluster service URLs
+            - name: PROMETHEUS_URL
+              value: "http://prometheus-server.monitoring.svc:9090"
+            - name: OPENCOST_URL
+              value: "http://opencost.opencost.svc:9003"
+            - name: LOG_LEVEL
+              value: "INFO"
+          livenessProbe:
+            exec:
+              command:
+                - python
+                - "-c"
+                - "from bot.main import KubeCostBot"
+            initialDelaySeconds: 15
+            periodSeconds: 60
+            timeoutSeconds: 5
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+      restartPolicy: Always
+
+---
+# Secret template — create this manually with your real values:
+#
+#   kubectl create secret generic cost-bot-secrets \
+#     --namespace=kube-cost-bot \
+#     --from-literal=DISCORD_TOKEN=<your-token> \
+#     --from-literal=DISCORD_GUILD_ID=<your-guild-id> \
+#     --from-literal=REPORT_CHANNEL_ID=<your-channel-id>
+#
+# Or apply this template after filling in real base64-encoded values:
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cost-bot-secrets
+  namespace: kube-cost-bot
+  labels:
+    app.kubernetes.io/name: kube-cost-bot
+type: Opaque
+data:
+  # Base64-encoded values — replace with your own:
+  #   echo -n "your-token" | base64
+  DISCORD_TOKEN: "REPLACE_WITH_BASE64_ENCODED_TOKEN"
+  DISCORD_GUILD_ID: "REPLACE_WITH_BASE64_ENCODED_GUILD_ID"
+  REPORT_CHANNEL_ID: "REPLACE_WITH_BASE64_ENCODED_CHANNEL_ID"

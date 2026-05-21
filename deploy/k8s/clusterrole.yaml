@@ -1,0 +1,31 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cost-bot-reader
+  labels:
+    app.kubernetes.io/name: kube-cost-bot
+    app.kubernetes.io/component: rbac
+rules:
+  # Read pods, deployments, statefulsets, daemonsets, replicasets
+  - apiGroups: ["", "apps"]
+    resources:
+      - pods
+      - deployments
+      - statefulsets
+      - daemonsets
+      - replicasets
+    verbs: ["get", "list", "watch"]
+
+  # Read namespaces and nodes (needed for cluster-wide summaries)
+  - apiGroups: [""]
+    resources:
+      - namespaces
+      - nodes
+    verbs: ["get", "list"]
+
+  # Read resource quotas and limit ranges
+  - apiGroups: [""]
+    resources:
+      - resourcequotas
+      - limitranges
+    verbs: ["get", "list"]

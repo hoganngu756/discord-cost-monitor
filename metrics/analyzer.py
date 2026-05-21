@@ -171,7 +171,7 @@ class ResourceAnalyzer:
             logger.warning("No namespaces found — is Prometheus reachable?")
             return ClusterSummary()
 
-        # Try OpenCost for cluster-wide costs
+        # Try OpenCost for cluster-wide cost overview
         ns_costs = await self._cost.get_namespace_costs()
         using_fallback = self._cost.is_using_fallback
 
@@ -187,8 +187,17 @@ class ResourceAnalyzer:
 
             try:
                 audit = await self.audit_namespace(ns)
-                ns_waste.append((ns, audit.total_daily_waste_usd))
-                total_waste += audit.total_daily_waste_usd
+
+                # Enrich with OpenCost namespace-level data when available
+                if ns in ns_costs and not using_fallback:
+                    oc = ns_costs[ns]
+                    daily_waste = oc.total_cost * max(0, 1 - oc.efficiency / 100)
+                    ns_waste.append((ns, round(daily_waste, 4)))
+                    total_waste += daily_waste
+                else:
+                    ns_waste.append((ns, audit.total_daily_waste_usd))
+                    total_waste += audit.total_daily_waste_usd
+
                 all_cpu_eff.append(audit.avg_cpu_efficiency)
                 all_mem_eff.append(audit.avg_mem_efficiency)
             except Exception:
